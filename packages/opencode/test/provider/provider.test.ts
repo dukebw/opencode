@@ -528,6 +528,42 @@ test("model options are merged from existing model", async () => {
   })
 })
 
+test("partial model limit override preserves existing context and output", async () => {
+  await using tmp = await tmpdir({
+    init: async (dir) => {
+      await Bun.write(
+        path.join(dir, "opencode.json"),
+        JSON.stringify({
+          $schema: "https://opencode.ai/config.json",
+          provider: {
+            openai: {
+              models: {
+                "gpt-5": {
+                  limit: {
+                    input: 300000,
+                  },
+                },
+              },
+            },
+          },
+        }),
+      )
+    },
+  })
+  await Instance.provide({
+    directory: tmp.path,
+    init: async () => {
+      Env.set("OPENAI_API_KEY", "test-api-key")
+    },
+    fn: async () => {
+      const model = await Provider.getModel("openai", "gpt-5")
+      expect(model.limit.input).toBe(300000)
+      expect(model.limit.context).toBeGreaterThan(300000)
+      expect(model.limit.output).toBeGreaterThan(0)
+    },
+  })
+})
+
 test("provider removed when all models filtered out", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
