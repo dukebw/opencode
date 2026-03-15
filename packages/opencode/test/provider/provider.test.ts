@@ -556,7 +556,7 @@ test("partial model limit override preserves existing context and output", async
       Env.set("OPENAI_API_KEY", "test-api-key")
     },
     fn: async () => {
-      const model = await Provider.getModel("openai", "gpt-5")
+      const model = await Provider.getModel(ProviderID.openai, ModelID.make("gpt-5"))
       expect(model.limit.input).toBe(300000)
       expect(model.limit.context).toBeGreaterThan(300000)
       expect(model.limit.output).toBeGreaterThan(0)
